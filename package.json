@@ -1,0 +1,20 @@
+{
+  "name": "physim",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/vigovlugt/physim.git",
+  "author": "Vigo Vlugt <vigovlugt@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@types/next": "^8.0.6",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
+    "@types/styled-jsx": "^2.2.8",
+    "konva": "^4.0.12",
+    "next": "^9.0.6",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-konva": "^16.9.0-1",
+    "typescript": "^3.6.3"
+  }
+}
