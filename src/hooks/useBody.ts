@@ -9,6 +9,7 @@ import IForceProvider, {
 import useUpdate from "./useUpdate";
 import IMagneticField from "../models/ForceProviders/IMagneticField";
 import { rotateVector } from "../utils/VectorUtils";
+import IElectricField from "../models/ForceProviders/IElectricField";
 
 export type BodyForceFunction = (
   body: IBody,
@@ -39,9 +40,9 @@ const useBody = (body: IBody) => {
     y: netForce.y / mass
   });
 
-  const calculateVelocity = (velocity, acceleration) => ({
-    x: velocity.x + acceleration.x,
-    y: velocity.y + acceleration.y
+  const calculateVelocity = (velocity, acceleration, delta) => ({
+    x: velocity.x + acceleration.x * delta,
+    y: velocity.y + acceleration.y * delta
   });
 
   const calculatePosition = (velocity, delta) => ({
@@ -49,7 +50,7 @@ const useBody = (body: IBody) => {
     y: position.y + velocity.y * delta
   });
 
-  useUpdate(delta => {
+  const update = delta => {
     const forces = simulationContext.forces.map(force => {
       //CHECK IN BOUNDS
       if (force.type == ForceType.MAGNETIC_FIELD || ForceType.ELECTRIC_FIELD) {
@@ -64,7 +65,6 @@ const useBody = (body: IBody) => {
         )
           return { x: 0, y: 0 };
       }
-
       switch (force.type) {
         case ForceType.MAGNETIC_FIELD:
           const magneticForce = force as IMagneticField;
@@ -73,22 +73,32 @@ const useBody = (body: IBody) => {
           if (magneticForce.direction > 0 && body.charge < 0) angle *= -1;
           if (magneticForce.direction < 0 && body.charge > 0) angle *= -1;
 
-          const rotatedVector = rotateVector(body.velocity, angle);
+          const rotatedVector = rotateVector(velocity, angle);
+
           return {
             x: magneticForce.tesla * body.charge * rotatedVector.x,
             y: magneticForce.tesla * body.charge * rotatedVector.y
           };
+        case ForceType.ELECTRIC_FIELD:
+          const elektricForce = force as IElectricField;
+
+          return {
+            x: elektricForce.direction.x * -body.charge * elektricForce.volt,
+            y: elektricForce.direction.y * -body.charge * elektricForce.volt
+          };
+          break;
       }
     });
-
     const netForce = calculateNetForce(forces);
     const acceleration = calculateAcceleration(netForce);
-    const currentVelocity = calculateVelocity(velocity, acceleration);
+    const currentVelocity = calculateVelocity(velocity, acceleration, delta);
     const newPosition = calculatePosition(velocity, delta);
 
     setPosition(newPosition);
     setVelocity(currentVelocity);
-  });
+  };
+
+  useUpdate(update);
 
   const simulationContext = useContext(SimulationContext);
 
